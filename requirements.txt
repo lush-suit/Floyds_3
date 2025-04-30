@@ -1,1 +1,4 @@
 pylint==3.3.6
+
+matplotlib~=3.10.1
+networkx~=3.4.2

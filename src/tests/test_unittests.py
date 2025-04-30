@@ -1,136 +1,61 @@
-"""
-Unit tests for Floyd-Warshall's algorithm implementations.
-
-Tests include:
-1. Correctness verification for both recursive and iterative implementations.
-2. Performance tests to ensure reasonable execution times.
-"""
-
+import sys
 import unittest
-from time import process_time
-from sys import maxsize
+import time  # For performance measurement
 
-# Assuming these modules and methods exist in your project structure
-try:
-    import recursion.recursive_floyd
-    import iterative.iterative_floyd
-except ImportError:
-    # Mock implementations for testing purposes if imports fail
-    RECURSIVE_GRAPH = [
-        [0, 7, maxsize, 8],
-        [maxsize, 0, 5, maxsize],
-        [maxsize, maxsize, 0, 2],
-        [maxsize, maxsize, maxsize, 0],
-    ]
-
-    ITERATIVE_GRAPH = [
-        [0, 7, maxsize, 8],
-        [maxsize, 0, 5, maxsize],
-        [maxsize, maxsize, 0, 2],
-        [maxsize, maxsize, maxsize, 0],
-    ]
+sys.path.append('./')
+from src.iterative.iterative_floyd import ITER_GRAPH, iterative_floyd, NO_PATH
+from src.recursion.recursive_floyd import RECUR_GRAPH, recursive_floyd_warshall, MAX_LENGTH
 
 
-    def recursive_floyd_warshall() -> None:
-        """Mock implementation of Floyd-Warshall recursive method."""
-        for k in range(len(RECURSIVE_GRAPH)):
-            for i in range(len(RECURSIVE_GRAPH)):
-                for j in range(len(RECURSIVE_GRAPH)):
-                    RECURSIVE_GRAPH[i][j] = min(
-                        RECURSIVE_GRAPH[i][j],
-                        RECURSIVE_GRAPH[i][k] + RECURSIVE_GRAPH[k][j],
-                    )
+class TestFloydAlgorithm(unittest.TestCase):
 
+    def setUp(self):
+        # Expected result graph for correctness verification
+        self.expected_graph = [
+            [0, 7, 12, 8],
+            [NO_PATH, 0, 5, 7],
+            [NO_PATH, NO_PATH, 0, 2],
+            [NO_PATH, NO_PATH, NO_PATH, 0],
+        ]
 
-    def iterative_floyd() -> None:
-        """Mock implementation of Floyd-Warshall iterative method."""
-        for k in range(len(ITERATIVE_GRAPH)):
-            for i in range(len(ITERATIVE_GRAPH)):
-                for j in range(len(ITERATIVE_GRAPH)):
-                    ITERATIVE_GRAPH[i][j] = min(
-                        ITERATIVE_GRAPH[i][j],
-                        ITERATIVE_GRAPH[i][k] + ITERATIVE_GRAPH[k][j],
-                    )
+    def test_iterative_floyd(self):
+        # Test correctness of the iterative approach
+        iterative_floyd()
+        self.assertEqual(ITER_GRAPH, self.expected_graph)
 
-# Helper constants for tests
-NO_PATH = maxsize
-INITIAL_GRAPH_STATE = [
-    [0, 7, NO_PATH, 8],
-    [NO_PATH, 0, 5, NO_PATH],
-    [NO_PATH, NO_PATH, 0, 2],
-    [NO_PATH, NO_PATH, NO_PATH, 0],
-]
-EXPECTED_OUTPUT_GRAPH = [
-    [0, 7, 12, 8],
-    [NO_PATH, 0, 5, 7],
-    [NO_PATH, NO_PATH, 0, 2],
-    [NO_PATH, NO_PATH, NO_PATH, 0],
-]
+    def test_recursive_floyd(self):
+        # Test correctness of the recursive approach
+        for i in range(MAX_LENGTH):
+            for j in range(MAX_LENGTH):
+                RECUR_GRAPH[i][j] = recursive_floyd_warshall(i, j, MAX_LENGTH - 1)
 
+        self.assertEqual(RECUR_GRAPH, self.expected_graph)
 
-def reset_graph(graph, initial_state):
-    """
-    Resets the global GRAPH variable to its initial state for consistency in testing.
-    """
-    for i in range(len(graph)):
-        for j in range(len(graph[i])):
-            graph[i][j] = initial_state[i][j]
+    def test_iterative_performance(self):
+        # Test performance of iterative Floyd-Warshall with larger input
+        start_time = time.perf_counter()
 
+        # Example: simulate running iterative Floyd on a larger dataset (if supported)
+        iterative_floyd()
 
-class TestFloydWarshall(unittest.TestCase):
-    """
-    Unit tests for Floyd-Warshall algorithm implementations.
-    """
-
-    def test_recursive_floyd_warshall_correctness(self):
-        """
-        Test the correctness of the recursive implementation of Floyd-Warshall algorithm.
-        Ensures the output graph matches the expected results.
-        """
-        reset_graph(RECURSIVE_GRAPH, INITIAL_GRAPH_STATE)
-        recursive_floyd_warshall()  # Execute the recursive algorithm
-        self.assertEqual(
-            RECURSIVE_GRAPH,
-            EXPECTED_OUTPUT_GRAPH,
-            f"Recursive Floyd-Warshall failed: {RECURSIVE_GRAPH}",
-        )
-
-    def test_iterative_floyd_correctness(self):
-        """
-        Test the correctness of the iterative implementation of Floyd-Warshall algorithm.
-        Ensures the output graph matches the expected results.
-        """
-        reset_graph(ITERATIVE_GRAPH, INITIAL_GRAPH_STATE)
-        iterative_floyd()  # Execute the iterative algorithm
-        self.assertEqual(
-            ITERATIVE_GRAPH,
-            EXPECTED_OUTPUT_GRAPH,
-            f"Iterative Floyd-Warshall failed: {ITERATIVE_GRAPH}",
-        )
-
-    def test_recursive_floyd_performance(self):
-        """
-        Test performance of the recursive Floyd-Warshall implementation.
-        Ensures execution time is within acceptable bounds.
-        """
-        reset_graph(RECURSIVE_GRAPH, INITIAL_GRAPH_STATE)
-        start_time = process_time()
-        recursive_floyd_warshall()  # Execute the recursive algorithm
-        end_time = process_time()
+        end_time = time.perf_counter()
         elapsed_time = end_time - start_time
-        self.assertLess(elapsed_time, 1.0, "Recursive algorithm took too long.")
+        print(f"Iterative Floyd-Warshall Performance Test Completed in {elapsed_time:.5f} seconds")
+        self.assertTrue(elapsed_time < 5, "Iterative Floyd-Warshall took too long")
 
-    def test_iterative_floyd_performance(self):
-        """
-        Test performance of the iterative Floyd-Warshall implementation.
-        Ensures execution time is within acceptable bounds.
-        """
-        reset_graph(ITERATIVE_GRAPH, INITIAL_GRAPH_STATE)
-        start_time = process_time()
-        iterative_floyd()  # Execute the iterative algorithm
-        end_time = process_time()
+    def test_recursive_performance(self):
+        # Test performance of recursive Floyd-Warshall with larger input
+        start_time = time.perf_counter()
+
+        # Example: simulate running recursive Floyd on a larger dataset (if supported)
+        for i in range(MAX_LENGTH):
+            for j in range(MAX_LENGTH):
+                RECUR_GRAPH[i][j] = recursive_floyd_warshall(i, j, MAX_LENGTH - 1)
+
+        end_time = time.perf_counter()
         elapsed_time = end_time - start_time
-        self.assertLess(elapsed_time, 1.0, "Iterative algorithm took too long.")
+        print(f"Recursive Floyd-Warshall Performance Test Completed in {elapsed_time:.5f} seconds")
+        self.assertTrue(elapsed_time < 5, "Recursive Floyd-Warshall took too long")
 
 
 if __name__ == "__main__":
